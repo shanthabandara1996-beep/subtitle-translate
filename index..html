@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>EN to SI Subtitle</title>
+<style>body{font-family:sans-serif;padding:20px;max-width:600px;margin:auto}input,textarea,button{width:100%;padding:10px;margin:8px 0;font-size:16px}button{background:#25D366;border:0;border-radius:8px;font-weight:bold}</style>
+</head><body>
+<h2>English Subtitle -> Sinhala</h2>
+<input id="name" placeholder="Movie Name eka danna">
+<input type="file" id="file" accept=".srt,.txt">
+<textarea id="out" rows="10" placeholder="Translated eka methana ei..."></textarea>
+<button onclick="translateFile()">1. TRANSLATE</button>
+<button onclick="saveFile()">2. SAVE SINHALA SRT</button>
+<p id="status"></p>
+<script>
+async function translateFile(){
+let f=document.getElementById('file').files[0];
+if(!f) return alert('File ekak thoranna');
+let text=await f.text();
+let blocks=text.split(/\n\s*\n/);
+let result=[];
+document.getElementById('status').innerText='Translating... tikak inna...';
+for(let b of blocks){
+let p=b.split('\n');
+if(p.length<3) continue;
+let time=p[1];
+let eng=p.slice(2).join(' ');
+try{
+let r=await fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(eng)+'&langpair=en|si');
+let j=await r.json();
+result.push(p[0]+'\n'+time+'\n'+j.responseData.translatedText);
+}catch(e){ result.push(b); }
+}
+document.getElementById('out').value=result.join('\n\n');
+document.getElementById('status').innerText='Done! Dan SAVE obanna';
+}
+function saveFile(){
+let name=document.getElementById('name').value || 'subtitle';
+let blob=new Blob([document.getElementById('out').value],{type:'text/plain'});
+let a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+a.download=name+' - Sinhala.srt'; a.click();
+}
+</script></body></html>
